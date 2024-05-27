@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>http://localhost:1313/zh-cn/</loc>
+    <lastmod>2024-05-27T15:19:53+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/links/</loc>
+    <lastmod>2024-05-27T15:19:53+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/about/</loc>
+    <lastmod>2024-05-27T15:13:28+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/archives/</loc>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/posts/tech/</loc>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/posts/read/</loc>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/posts/</loc>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/search/</loc>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/categories/</loc>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/series/</loc>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/posts/life/</loc>
+  </url><url>
+    <loc>http://localhost:1313/zh-cn/tags/</loc>
+  </url>
+</urlset>

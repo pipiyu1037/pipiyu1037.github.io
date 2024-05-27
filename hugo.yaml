@@ -1,0 +1,219 @@
+baseURL: "https://localhost:1313/"
+languageCode: zh-cn
+title: pipiyu's Blog
+theme: PaperMod 
+
+enableInlineShortcodes: true #允许内联短码
+enableEmoji: true # 允许使用 Emoji 表情，建议 true
+enableRobotsTXT: true # 允许爬虫抓取到搜索引擎，建议 true
+
+hasCJKLanguage: true # 自动检测是否包含 中文日文韩文 如果文章中使用了很多中文引号的话可以开启
+
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+
+#googleAnalytics: UA-123-45
+# Copyright: Sulv
+
+paginate: 15    # 每页显示的文章数
+
+minify:
+    disableXML: true
+    # minifyOutput: true
+
+permalinks: #浏览器链接显示方式
+  post: "/:title/"
+  # post: "/:year/:month/:day/:title/"
+
+defaultContentLanguage: zh-cn # 最顶部首先展示的语言页面
+defaultContentLanguageInSubdir: true
+
+languages:
+  zh-cn:
+    languageName: "Chinese"
+    # contentDir: content/english
+    weight: 1
+    menu:
+      main:
+        - identifier: search
+          name: 🔍搜索
+          url: search
+          weight: 1
+        - identifier: home
+          name: 🏠主页
+          url: /
+          weight: 2
+        - identifier: posts
+          name: 📚文章
+          url: posts/
+          weight: 3
+        - identifier: archives
+          name: ⏱时间轴
+          url: archives
+          weight: 20
+        - identifier: tags
+          name: 🔖标签
+          url: tags/
+          weight: 40
+        - identifier: about
+          name: 🙋🏻‍♂️关于
+          url: about
+          weight: 50
+        - identifier: links
+          name: 🤝友链
+          url: links
+          weight: 60
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
+
+params:
+  env: production # to enable google analytics, opengraph, twitter-cards and schema.
+  # description: "这是一个纯粹的博客......"
+  author: pipiyu
+  defaultTheme: auto  # defaultTheme: light or  dark 
+  disableThemeToggle: false
+  DateFormat: "2006-01-02"
+  ShowShareButtons: true
+  ShowReadingTime: true
+  # disableSpecialistPost: true
+  displayFullLangName: true
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  hideFooter: false # 隐藏页脚
+  ShowWordCounts: true
+  VisitCount: true
+
+  ShowLastMod: true #显示文章更新时间
+
+  ShowToc: true # 显示目录
+  TocOpen: true # 自动展开目录
+
+  comments: true
+    
+  profileMode:
+    enabled: true
+    title: (〃'▽'〃)
+    subtitle: "上善若水货，水货利万物而不争<br/>👏🏼欢迎光临pipiyu的博客<br/>👇联系方式"
+    imageUrl: "imgs/headPic.jpg" 
+    imageTitle: 
+    imageWidth: 150
+    imageHeight: 150
+    buttons:
+      - name: 👨🏻‍💻技术
+        url: posts/tech
+      - name: 📕阅读
+        url: posts/read
+      - name: 🏖生活
+        url: posts/life
+
+  socialIcons:
+    - name: github
+      url: "https://github.com/pipiyu1037"
+    # - name: twitter
+    #   url:  "img/twitter.png"
+    # - name: facebook
+    #   url: "https://www.facebook.com/profile.php?id=100027782410997"
+    # - name: instagram
+    #   url: "img/instagram.png"
+    # - name: QQ
+    #   url: "img/qq.png"
+    # - name: WeChat
+    #   url: "img/wechat.png"
+    - name: email
+      url: "pipiyu1011@163.com"
+    # - name: RSS
+    #   url: "index.xml"
+
+  # editPost:
+  #     URL: "https://github.com/adityatelange/hugo-PaperMod/tree/exampleSite/content"
+  #     Text: "Suggest Changes" # edit text
+  #     appendFilePath: true # to append file path to Edit link
+
+  label:
+    text: "pipiyu's Blog"
+    #icon: "img/Q.gif"
+    icon: "imgs/headPic.jpg"
+    iconHeight: 35
+
+  # analytics:  #谷歌分析
+  #     google:
+  #         SiteVerificationTag: "XYZabc"
+
+  assets:
+      favicon: "imgs/headPic.jpgf"
+      favicon16x16: "imgs/headPic.jpg"
+      favicon32x32: "imgs/headPic.jpg"
+      apple_touch_icon: "headPic.jpg"
+      safari_pinned_tab: "headPic.jpg"
+
+  # cover:
+  #     hidden: true # hide everywhere but not in structured data
+  #     hiddenInList: true # hide on list pages and home
+  #     hiddenInSingle: true # hide on single page
+
+  fuseOpts:
+    isCaseSensitive: false
+    shouldSort: true
+    location: 0
+    distance: 1000
+    threshold: 1
+    minMatchCharLength: 0
+    keys: ["title", "permalink", "summary"]
+  twikoo:
+    version: 1.4.11
+
+taxonomies:
+  category: categories
+  tag: tags
+  series: series
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true # HUGO 默认转义 Markdown 文件中的 HTML 代码，如需开启的话
+  highlight:
+    # anchorLineNos: true
+    codeFences: true  
+    guessSyntax: true
+    lineNos: true
+    # noClasses: false
+    # style: monokai
+    style: darcula
+
+    # codeFences：true
+    # guessSyntax：猜测语法，这个功能建议设置为 true, 如果你没有设置要显示的语言则会自动匹配。
+    # hl_Lines：高亮的行号，一般这个不设置，因为每个代码块我们可能希望让高亮的地方不一样。
+    # lineNoStart：行号从编号几开始，一般从 1 开始。
+    # lineNos：是否显示行号，我比较喜欢显示，所以我设置的为 true.
+    # lineNumbersInTable：使用表来格式化行号和代码,而不是 标签。这个属性一般设置为 true.
+    # noClasses：使用 class 标签，而不是内嵌的内联样式
+
+privacy:
+  vimeo:
+    disabled: false
+    simple: true
+
+  twitter:
+    disabled: false
+    enableDNT: true
+    simple: true
+
+  instagram:
+    disabled: false
+    simple: true
+
+  youtube:
+    disabled: false
+    privacyEnhanced: true
+
+services:
+  instagram:
+    disableInlineCSS: true
+  twitter:
+    disableInlineCSS: true
