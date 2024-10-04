@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script type="text/javascript"
+        async
+        src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\[\[','\]\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});
+
+MathJax.Hub.Queue(function() {
+    
+    
+    
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+});
+</script>
+
+<style>
+code.has-jax {
+    font: inherit;
+    font-size: 100%;
+    background: inherit;
+    border: inherit;
+    color: #515151;
+}
+</style>
+<meta name="robots" content="index, follow">
+<title>ReSTIR | pipiyu&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="ReSTIR RIS(Resampled Importance Sampling) 工作流程 从一个易于采样的分布 $ p\ (e.g.\ p\propto L_e) $中生成M个candidate samples $\mathbf{x} = {x_1,&hellip;,x_M }$ 用离散概率分布$p(z|\mathbf{x})$从ca">
+<meta name="author" content="pipiyu">
+<link rel="canonical" href="https://pipiyu1037.github.io/posts/tech/restir/">
+<meta name="google-site-verification" content="XYZabc">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://pipiyu1037.github.io/imgs/headPic.jpgf">
+<link rel="icon" type="image/png" sizes="16x16" href="https://pipiyu1037.github.io/imgs/headPic.jpg">
+<link rel="icon" type="image/png" sizes="32x32" href="https://pipiyu1037.github.io/imgs/headPic.jpg">
+<link rel="apple-touch-icon" href="https://pipiyu1037.github.io/headPic.jpg">
+<link rel="mask-icon" href="https://pipiyu1037.github.io/headPic.jpg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://pipiyu1037.github.io/posts/tech/restir/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:title" content="ReSTIR" />
+<meta property="og:description" content="ReSTIR RIS(Resampled Importance Sampling) 工作流程 从一个易于采样的分布 $ p\ (e.g.\ p\propto L_e) $中生成M个candidate samples $\mathbf{x} = {x_1,&hellip;,x_M }$ 用离散概率分布$p(z|\mathbf{x})$从ca" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://pipiyu1037.github.io/posts/tech/restir/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-10-04T17:17:11+08:00" />
+<meta property="article:modified_time" content="2024-10-04T17:17:11+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="ReSTIR"/>
+<meta name="twitter:description" content="ReSTIR RIS(Resampled Importance Sampling) 工作流程 从一个易于采样的分布 $ p\ (e.g.\ p\propto L_e) $中生成M个candidate samples $\mathbf{x} = {x_1,&hellip;,x_M }$ 用离散概率分布$p(z|\mathbf{x})$从ca"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://pipiyu1037.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "👨🏻‍💻 技术",
+      "item": "https://pipiyu1037.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "ReSTIR",
+      "item": "https://pipiyu1037.github.io/posts/tech/restir/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ReSTIR",
+  "name": "ReSTIR",
+  "description": "ReSTIR RIS(Resampled Importance Sampling) 工作流程 从一个易于采样的分布 $ p\\ (e.g.\\ p\\propto L_e) $中生成M个candidate samples $\\mathbf{x} = {x_1,\u0026hellip;,x_M }$ 用离散概率分布$p(z|\\mathbf{x})$从ca",
+  "keywords": [
+    
+  ],
+  "articleBody": "ReSTIR RIS(Resampled Importance Sampling) 工作流程 从一个易于采样的分布 $ p\\ (e.g.\\ p\\propto L_e) $中生成M个candidate samples $\\mathbf{x} = {x_1,…,x_M }$\n用离散概率分布$p(z|\\mathbf{x})$从candidate samples中随机选择索引$z \\in {1,…,M }$\n$$ p(z|\\mathbf{x}) = \\frac{\\mathrm{w}(x_z)}{\\sum_{i=1}^{M}\\mathrm{w}(x_i)}\\ \\ with\\ \\ \\mathrm{w}(x) = \\frac{\\hat{p}(x)}{p(x)} $$\n$\\hat{p}(x)\\ (e.g.\\ \\ \\hat{p} \\propto L_e \\cdot f_r \\cdot cosine)$是目标分布(target pdf)。\n挑选出一个样本 $y= x_z$ ,用于单样本的蒙特卡洛估计。\n$$ I_{ris}^{1,M} = \\frac{f(y)}{\\hat{p}(y)}\\cdot(\\frac{1}{M}\\sum_{j=1}^{M}\\mathrm{w}(x_j)) $$\n重复采样，采样出多个$y$ ，用于N样本的蒙特卡洛估计。\n$$ I_{ris}^{N,M} = \\frac{1}{N}\\sum_{i=1}^{N} \\Bigl( \\frac{f(y_i)}{\\hat{p}(y_i)}\\cdot \\bigl(\\frac{1}{M}\\sum_{j=1}^{M}\\mathrm{w}(x_{ij})\\bigl)\\Bigl) $$\n注意事项 $M,N \\geqslant 1$ 当$f(x)$非0时，$p,\\hat{p}$也非0 MIS和RIS 从多个分布$p_i$中，生成M个candidate samples $\\mathbf{x} = {x_1,…,x_M }$\n使用重要性权重\n$$ \\mathrm{w}i(x) = \\omega{i,mis}(x)\\cdot \\frac{\\hat{p}(x)}{p_i(x)} $$\n$$ W = \\sum_{i=1}^{M}\\mathrm{w}_i(x_i) $$\n蒙特卡洛估计\n$$ I^1 = \\frac{f(y)}{\\hat{p}(y)} \\cdot W \\ I^N = \\frac{1}{N}\\sum_{i=1}^{N}(\\frac{f(y_i)}{\\hat{p}(y_i)}W) $$\nWRS(Weighted Reservoir Sampling) WRS是在一次遍历中从$\\mathbf{x} = {x_1,…,x_M }$ 中采样出N个元素的一类方法。每个元素$x_i$被选取的概率为：\n$$ P_i = \\frac{\\mathrm{w}(x_i)}{\\sum_{j=1}^{M}\\mathrm{w}(x_j)} $$\n伪代码：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 Class Reservoir{ y = 0; W_sum = 0; M = 0; W = 0; update(x,w_i){ w_sum = w_sum + w_i; M = M + 1; if(rand() \u003c (w_i/w_sum)) y = x_i } } reservoirSampling(Samples){ Reservoir r; for i = 1 to M r.update(Samples[i], weight[Samples[i]]) return r } 结合WRS和RIS 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 foreach pixel in Image: Image[q] = shadePixel(RIS(q),q) RIS(q){ Reservior r; for i = 1 to M: generate x_i ~ p; r.update(x_i, P(x_i)/p(x_i)); r.W = r.W_sum/(P(r.y) * r.M); return r; } shadePixel(Reservior r, q){ return f(r.y) * r.W; } 其中：\n$$ r.W = \\frac{1}{\\hat{p}(r.y)}(\\frac{1}{M}\\sum_{i = 1}^{M}\\mathrm{w}_i(x_i)) $$\n样本时空复用 空域复用 需要用到两个pass，第一个pass记录当前像素的reservoir，第二个pass复用邻近像素的reservoir。\n第一步： 在每个像素上使用RIS(q)生成M个candidate samples，然后在一个图像大小的的缓冲中存错每个像素的reservoir的结果。\n第二步： 每个像素挑选出k个相邻像素，并将这些像素上的reservoir与自身reservoir结合。\n这样，在每个像素上的开销位O(k+M),但是每个像素使用的candidate samples有k*M个。迭代多次这个过程，开销位O(nk+M), 每个像素使用的candidate samples$k^nM$个。\n时域复用 重用上一帧的reservoir。\n多分布RIS中的Bias 首先把蒙特卡洛估计器改写为：\n$$ L_{ris}^{1,M} = f(y)\\cdot \\Bigl( \\frac{1}{\\hat{p}(y)} \\cdot \\frac{1}{M} \\cdot \\sum_{j = 1}^{M} \\mathrm{w}(x_j) \\Bigr) = f(y)\\cdot W(\\mathbf{x},z) $$\n$$ W(\\mathbf{x},z) = \\frac{1}{\\hat{p}(x_z)} \\cdot \\Bigl(\\frac{1}{M} \\cdot \\sum_{i = 1}^{M}\\mathrm{w}_i(x_i) \\Bigr) $$\n在这个估计器中，用$W$去替代了1/$p(y)$。\n在多分布的RIS中，由于candidate samples $\\mathbf{x}$中的样本$x_i$可以来源于不同的采样$p_i(x_i)$，有：\n$$ p(\\mathbf{x}) = \\prod_{i = 1}^{M}p_i(x_i) $$\n在前面已经提到，从candidate samples中选择样本的策略：\n$$ p(z|\\mathbf{x}) = \\frac{\\mathrm{w}z(x_z)}{\\sum{i=1}^{M}\\mathrm{w}_i(x_i)}\\ \\ with\\ \\ \\mathrm{w}_i(x_i) = \\frac{\\hat{p}(x_i)}{p_i(x_i)} $$\n因此，\n$$ p(\\mathbf{x},z) = p(z|\\mathbf{x})\\cdot p(\\mathbf{x}) = (\\prod_{i = 1}^{M}p_i(x_i)) \\frac{\\mathrm{w}z(x_z)}{\\sum{i=1}^{M}\\mathrm{w}_i(x_i)}\\ \\ with\\ \\ \\mathrm{w}_i(x_i) = \\frac{\\hat{p}(x_i)}{p_i(x_i)} $$\n记集合：\n$$ Z(y) = {i|1 \\leqslant i \\leqslant M\\ \\wedge \\ p_i(y) \u003e 0 } $$\n则$p(y)$可以写作：\n$$ p(y) = \\sum_{i \\in Z(y)} \\underbrace{\\int …\\int}{M-1 \\ times}p(\\mathbf{x}^{i \\to y},i)\\underbrace{dx_1…dx_M}{M-1 \\ times} $$\n其中 $\\mathbf{x}^{i \\to y} = {x_1,…,x_{i-1}, y, x_{i+1},…x_M }$。\n条件期望：\n$$ E_{x_z = y}(W(\\mathbf{x},z))= \\sum_{i \\in Z(y)} \\frac{ \\int …\\int W(\\mathbf{x}^{i \\to y},i)p(\\mathbf{x}^{i \\to y},i)dx_1…dx_M}{p(y)} $$\n最终可计算出:\n$$ E_{x_z = y}(W(\\mathbf{x},z))= \\frac{1}{p(y)} \\cdot (\\frac{|Z(y)|}{M}) $$\n所以，在目标pdf非0处，任何candidate pdf也非0时，则$|Z(y)| = M$,此时RIS就是无偏的，反之则$|Z(y)| \u003c M$。导致$E_{x_z = y}(W(\\mathbf{x},z)) \u003c \\frac{1}{p(y)}$ ，，图像会偏暗。\n无偏RIS 为了达到无偏的RIS，可以对权重因子进行修改，不再使用$\\frac{1}{M}$作为权重因子，而是取一个权重$m(x_z)$\n$$ W(\\mathbf{x},z) = \\frac{1}{\\hat{p}(x_z)} \\cdot \\Bigl(m(x_z)\\cdot \\sum_{i = 1}^{M}\\mathrm{w}_i(x_i) \\Bigr) $$\n则计算条件期望：\n$$ E_{x_z = y}(W(\\mathbf{x},z))= \\frac{1}{p(y)} \\cdot (\\sum_{i \\in Z(y)}m(x_i)) $$\n因此只要$\\sum_{i \\in Z(y)}m(x_i) =1$，就可以得到一个无偏的结果。\n显然，当$m(x_z) = \\frac{1}{|Z(x_z)|}$时，满足条件。\n这里也可以结合MIS：\n$$ m(x_z) = \\frac{p_z(x_z)}{\\sum_{i = 0}^{M}p_i(x_z)} $$\n",
+  "wordCount" : "1413",
+  "inLanguage": "en",
+  "datePublished": "2024-10-04T17:17:11+08:00",
+  "dateModified": "2024-10-04T17:17:11+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "pipiyu"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://pipiyu1037.github.io/posts/tech/restir/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "pipiyu's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://pipiyu1037.github.io/imgs/headPic.jpgf"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://pipiyu1037.github.io/" accesskey="h" title="pipiyu&#39;s Blog (Alt + H)">
+                <img src="https://pipiyu1037.github.io/imgs/headPic.jpg" alt="" aria-label="logo"
+                    height="35">pipiyu&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://pipiyu1037.github.io/search" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://pipiyu1037.github.io/" title="主页">
+                    <span>主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://pipiyu1037.github.io/posts/" title="文章">
+                    <span>文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://pipiyu1037.github.io/archives" title="时间轴">
+                    <span>时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://pipiyu1037.github.io/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://pipiyu1037.github.io/about" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://pipiyu1037.github.io/links" title="友链">
+                    <span>友链</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://pipiyu1037.github.io/">Home</a>&nbsp;»&nbsp;<a href="https://pipiyu1037.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://pipiyu1037.github.io/posts/tech/">👨🏻‍💻 技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      ReSTIR
+    </h1>
+    <div class="post-meta"><span title='2024-10-04 17:17:11 +0800 CST'>2024-10-04</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;pipiyu
+
+</div>
+  </header> <div class="toc">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#restir" aria-label="ReSTIR">ReSTIR</a><ul>
+                        
+                <li>
+                    <a href="#risresampled-importance-sampling" aria-label="RIS(Resampled Importance Sampling)">RIS(Resampled Importance Sampling)</a><ul>
+                        
+                <li>
+                    <a href="#%e5%b7%a5%e4%bd%9c%e6%b5%81%e7%a8%8b" aria-label="工作流程">工作流程</a></li>
+                <li>
+                    <a href="#%e6%b3%a8%e6%84%8f%e4%ba%8b%e9%a1%b9" aria-label="注意事项">注意事项</a></li></ul>
+                </li>
+                <li>
+                    <a href="#mis%e5%92%8cris" aria-label="MIS和RIS">MIS和RIS</a></li>
+                <li>
+                    <a href="#wrsweighted-reservoir-sampling" aria-label="WRS(Weighted Reservoir Sampling)">WRS(Weighted Reservoir Sampling)</a></li>
+                <li>
+                    <a href="#%e7%bb%93%e5%90%88wrs%e5%92%8cris" aria-label="结合WRS和RIS">结合WRS和RIS</a></li>
+                <li>
+                    <a href="#%e6%a0%b7%e6%9c%ac%e6%97%b6%e7%a9%ba%e5%a4%8d%e7%94%a8" aria-label="样本时空复用">样本时空复用</a><ul>
+                        
+                <li>
+                    <a href="#%e7%a9%ba%e5%9f%9f%e5%a4%8d%e7%94%a8" aria-label="空域复用">空域复用</a></li>
+                <li>
+                    <a href="#%e6%97%b6%e5%9f%9f%e5%a4%8d%e7%94%a8" aria-label="时域复用">时域复用</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%a4%9a%e5%88%86%e5%b8%83ris%e4%b8%ad%e7%9a%84bias" aria-label="多分布RIS中的Bias">多分布RIS中的Bias</a></li>
+                <li>
+                    <a href="#%e6%97%a0%e5%81%8fris" aria-label="无偏RIS">无偏RIS</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="restir">ReSTIR<a hidden class="anchor" aria-hidden="true" href="#restir">#</a></h1>
+<h2 id="risresampled-importance-sampling">RIS(Resampled Importance Sampling)<a hidden class="anchor" aria-hidden="true" href="#risresampled-importance-sampling">#</a></h2>
+<h3 id="工作流程">工作流程<a hidden class="anchor" aria-hidden="true" href="#工作流程">#</a></h3>
+<ul>
+<li>
+<p>从一个易于采样的分布  $ p\ (e.g.\ p\propto L_e) $中生成M个candidate samples $\mathbf{x} = {x_1,&hellip;,x_M }$</p>
+</li>
+<li>
+<p>用离散概率分布$p(z|\mathbf{x})$从candidate samples中随机选择索引$z \in {1,&hellip;,M }$</p>
+<p>$$
+p(z|\mathbf{x}) = \frac{\mathrm{w}(x_z)}{\sum_{i=1}^{M}\mathrm{w}(x_i)}\ \ with\ \ \mathrm{w}(x) = \frac{\hat{p}(x)}{p(x)}
+$$</p>
+<p>$\hat{p}(x)\ (e.g.\ \  \hat{p} \propto L_e \cdot f_r \cdot cosine)$是目标分布(target pdf)。</p>
+</li>
+<li>
+<p>挑选出一个样本 $y= x_z$ ,用于单样本的蒙特卡洛估计。</p>
+<p>$$
+I_{ris}^{1,M} = \frac{f(y)}{\hat{p}(y)}\cdot(\frac{1}{M}\sum_{j=1}^{M}\mathrm{w}(x_j))
+$$</p>
+</li>
+<li>
+<p>重复采样，采样出多个$y$ ，用于N样本的蒙特卡洛估计。</p>
+<p>$$
+I_{ris}^{N,M} = \frac{1}{N}\sum_{i=1}^{N} \Bigl( \frac{f(y_i)}{\hat{p}(y_i)}\cdot \bigl(\frac{1}{M}\sum_{j=1}^{M}\mathrm{w}(x_{ij})\bigl)\Bigl)
+$$</p>
+</li>
+</ul>
+<h3 id="注意事项">注意事项<a hidden class="anchor" aria-hidden="true" href="#注意事项">#</a></h3>
+<ul>
+<li>$M,N \geqslant 1$</li>
+<li>当$f(x)$非0时，$p,\hat{p}$也非0</li>
+</ul>
+<h2 id="mis和ris">MIS和RIS<a hidden class="anchor" aria-hidden="true" href="#mis和ris">#</a></h2>
+<ul>
+<li>
+<p>从多个分布$p_i$中，生成M个candidate samples $\mathbf{x} = {x_1,&hellip;,x_M }$</p>
+</li>
+<li>
+<p>使用重要性权重</p>
+<p>$$
+\mathrm{w}<em>i(x) = \omega</em>{i,mis}(x)\cdot \frac{\hat{p}(x)}{p_i(x)}
+$$</p>
+<p>$$
+W = \sum_{i=1}^{M}\mathrm{w}_i(x_i)
+$$</p>
+</li>
+<li>
+<p>蒙特卡洛估计</p>
+</li>
+</ul>
+<p>$$
+I^1 = \frac{f(y)}{\hat{p}(y)} \cdot W \ I^N = \frac{1}{N}\sum_{i=1}^{N}(\frac{f(y_i)}{\hat{p}(y_i)}W)
+$$</p>
+<h2 id="wrsweighted-reservoir-sampling">WRS(Weighted Reservoir Sampling)<a hidden class="anchor" aria-hidden="true" href="#wrsweighted-reservoir-sampling">#</a></h2>
+<p>WRS是在一次遍历中从$\mathbf{x} = {x_1,&hellip;,x_M }$ 中采样出N个元素的一类方法。每个元素$x_i$被选取的概率为：</p>
+<p>$$
+P_i = \frac{\mathrm{w}(x_i)}{\sum_{j=1}^{M}\mathrm{w}(x_j)}
+$$</p>
+<p>伪代码：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>Class Reservoir{
+</span></span><span style="display:flex;"><span>	y <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	W_sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	M <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	W <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	update(x,w_i){
+</span></span><span style="display:flex;"><span>		w_sum <span style="color:#f92672">=</span> w_sum <span style="color:#f92672">+</span> w_i;
+</span></span><span style="display:flex;"><span>		M <span style="color:#f92672">=</span> M <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span>(rand() <span style="color:#f92672">&lt;</span> (w_i<span style="color:#f92672">/</span>w_sum)) y <span style="color:#f92672">=</span> x_i
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>reservoirSampling(Samples){
+</span></span><span style="display:flex;"><span>	Reservoir r;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> to M
+</span></span><span style="display:flex;"><span>		r.update(Samples[i], weight[Samples[i]])
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> r
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="结合wrs和ris">结合WRS和RIS<a hidden class="anchor" aria-hidden="true" href="#结合wrs和ris">#</a></h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>foreach pixel in Image:
+</span></span><span style="display:flex;"><span>	Image[q] <span style="color:#f92672">=</span> shadePixel(RIS(q),q)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>RIS(q){
+</span></span><span style="display:flex;"><span>	Reservior r;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> to M:
+</span></span><span style="display:flex;"><span>		generate x_i <span style="color:#f92672">~</span> p;
+</span></span><span style="display:flex;"><span>		r.update(x_i, P(x_i)<span style="color:#f92672">/</span>p(x_i));
+</span></span><span style="display:flex;"><span>	r.W <span style="color:#f92672">=</span> r.W_sum<span style="color:#f92672">/</span>(P(r.y) <span style="color:#f92672">*</span> r.M);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> r;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>shadePixel(Reservior r, q){
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">f</span>(r.y) <span style="color:#f92672">*</span> r.W;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其中：</p>
+<p>$$
+r.W = \frac{1}{\hat{p}(r.y)}(\frac{1}{M}\sum_{i = 1}^{M}\mathrm{w}_i(x_i))
+$$</p>
+<p><img loading="lazy" src="Untitled.png" alt=""  />
+</p>
+<h2 id="样本时空复用">样本时空复用<a hidden class="anchor" aria-hidden="true" href="#样本时空复用">#</a></h2>
+<h3 id="空域复用">空域复用<a hidden class="anchor" aria-hidden="true" href="#空域复用">#</a></h3>
+<p>需要用到两个pass，第一个pass记录当前像素的reservoir，第二个pass复用邻近像素的reservoir。</p>
+<p><strong>第一步</strong>： 在每个像素上使用RIS(q)生成M个candidate samples，然后在一个图像大小的的缓冲中存错每个像素的reservoir的结果。</p>
+<p><strong>第二步</strong>： 每个像素挑选出k个相邻像素，并将这些像素上的reservoir与自身reservoir结合。</p>
+<p>这样，在每个像素上的开销位O(k+M),但是每个像素使用的candidate samples有k*M个。迭代多次这个过程，开销位O(nk+M), 每个像素使用的candidate samples$k^nM$个。</p>
+<p><img loading="lazy" src="Untitled1.png" alt=""  />
+</p>
+<h3 id="时域复用">时域复用<a hidden class="anchor" aria-hidden="true" href="#时域复用">#</a></h3>
+<p>重用上一帧的reservoir。</p>
+<p><img loading="lazy" src="Untitled2.png" alt=""  />
+</p>
+<h2 id="多分布ris中的bias">多分布RIS中的Bias<a hidden class="anchor" aria-hidden="true" href="#多分布ris中的bias">#</a></h2>
+<p>首先把蒙特卡洛估计器改写为：</p>
+<p>$$
+L_{ris}^{1,M} = f(y)\cdot \Bigl( \frac{1}{\hat{p}(y)} \cdot \frac{1}{M} \cdot \sum_{j = 1}^{M} \mathrm{w}(x_j) \Bigr) = f(y)\cdot W(\mathbf{x},z)
+$$</p>
+<p>$$
+W(\mathbf{x},z) = \frac{1}{\hat{p}(x_z)} \cdot \Bigl(\frac{1}{M} \cdot \sum_{i = 1}^{M}\mathrm{w}_i(x_i) \Bigr)
+$$</p>
+<p>在这个估计器中，用$W$去替代了1/$p(y)$。</p>
+<p>在多分布的RIS中，由于candidate samples $\mathbf{x}$中的样本$x_i$可以来源于不同的采样$p_i(x_i)$，有：</p>
+<p>$$
+p(\mathbf{x}) = \prod_{i = 1}^{M}p_i(x_i)
+$$</p>
+<p>在前面已经提到，从candidate samples中选择样本的策略：</p>
+<p>$$
+p(z|\mathbf{x}) = \frac{\mathrm{w}<em>z(x_z)}{\sum</em>{i=1}^{M}\mathrm{w}_i(x_i)}\ \ with\ \ \mathrm{w}_i(x_i) = \frac{\hat{p}(x_i)}{p_i(x_i)}
+$$</p>
+<p>因此，</p>
+<p>$$
+p(\mathbf{x},z) = p(z|\mathbf{x})\cdot p(\mathbf{x}) = (\prod_{i = 1}^{M}p_i(x_i)) \frac{\mathrm{w}<em>z(x_z)}{\sum</em>{i=1}^{M}\mathrm{w}_i(x_i)}\ \ with\ \ \mathrm{w}_i(x_i) = \frac{\hat{p}(x_i)}{p_i(x_i)}
+$$</p>
+<p>记集合：</p>
+<p>$$
+Z(y) = {i|1 \leqslant i \leqslant  M\ \wedge \ p_i(y) &gt; 0 }
+$$</p>
+<p>则$p(y)$可以写作：</p>
+<p>$$
+p(y) = \sum_{i \in Z(y)} \underbrace{\int &hellip;\int}<em>{M-1 \ times}p(\mathbf{x}^{i \to y},i)\underbrace{dx_1&hellip;dx_M}</em>{M-1 \ times}
+$$</p>
+<p>其中 $\mathbf{x}^{i \to y} = {x_1,&hellip;,x_{i-1}, y, x_{i+1},&hellip;x_M }$。</p>
+<p>条件期望：</p>
+<p>$$
+E_{x_z = y}(W(\mathbf{x},z))= \sum_{i \in Z(y)} \frac{ \int &hellip;\int W(\mathbf{x}^{i \to y},i)p(\mathbf{x}^{i \to y},i)dx_1&hellip;dx_M}{p(y)}
+$$</p>
+<p>最终可计算出:</p>
+<p>$$
+E_{x_z = y}(W(\mathbf{x},z))= \frac{1}{p(y)} \cdot (\frac{|Z(y)|}{M})
+$$</p>
+<p>所以，在目标pdf非0处，任何candidate pdf也非0时，则$|Z(y)| = M$,此时RIS就是无偏的，反之则$|Z(y)| &lt; M$。导致$E_{x_z = y}(W(\mathbf{x},z)) &lt; \frac{1}{p(y)}$ ，，图像会偏暗。</p>
+<h2 id="无偏ris">无偏RIS<a hidden class="anchor" aria-hidden="true" href="#无偏ris">#</a></h2>
+<p>为了达到无偏的RIS，可以对权重因子进行修改，不再使用$\frac{1}{M}$作为权重因子，而是取一个权重$m(x_z)$</p>
+<p>$$
+W(\mathbf{x},z) = \frac{1}{\hat{p}(x_z)} \cdot \Bigl(m(x_z)\cdot \sum_{i = 1}^{M}\mathrm{w}_i(x_i) \Bigr)
+$$</p>
+<p>则计算条件期望：</p>
+<p>$$
+E_{x_z = y}(W(\mathbf{x},z))= \frac{1}{p(y)} \cdot (\sum_{i \in Z(y)}m(x_i))
+$$</p>
+<p>因此只要$\sum_{i \in Z(y)}m(x_i) =1$，就可以得到一个无偏的结果。</p>
+<p>显然，当$m(x_z) = \frac{1}{|Z(x_z)|}$时，满足条件。</p>
+<p>这里也可以结合MIS：</p>
+<p>$$
+m(x_z) = \frac{p_z(x_z)}{\sum_{i = 0}^{M}p_i(x_z)}
+$$</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://pipiyu1037.github.io/posts/tech/misinpt/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>路径追踪中的多重重要性采样</span>
+  </a>
+</nav>
+
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share ReSTIR on x"
+            href="https://x.com/intent/tweet/?text=ReSTIR&amp;url=https%3a%2f%2fpipiyu1037.github.io%2fposts%2ftech%2frestir%2f&amp;hashtags=">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share ReSTIR on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fpipiyu1037.github.io%2fposts%2ftech%2frestir%2f&amp;title=ReSTIR&amp;summary=ReSTIR&amp;source=https%3a%2f%2fpipiyu1037.github.io%2fposts%2ftech%2frestir%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share ReSTIR on reddit"
+            href="https://reddit.com/submit?url=https%3a%2f%2fpipiyu1037.github.io%2fposts%2ftech%2frestir%2f&title=ReSTIR">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share ReSTIR on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fpipiyu1037.github.io%2fposts%2ftech%2frestir%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share ReSTIR on whatsapp"
+            href="https://api.whatsapp.com/send?text=ReSTIR%20-%20https%3a%2f%2fpipiyu1037.github.io%2fposts%2ftech%2frestir%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share ReSTIR on telegram"
+            href="https://telegram.me/share/url?text=ReSTIR&amp;url=https%3a%2f%2fpipiyu1037.github.io%2fposts%2ftech%2frestir%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share ReSTIR on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=ReSTIR&u=https%3a%2f%2fpipiyu1037.github.io%2fposts%2ftech%2frestir%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2024 <a href="https://pipiyu1037.github.io/">pipiyu&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

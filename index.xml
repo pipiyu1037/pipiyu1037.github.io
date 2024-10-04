@@ -6,8 +6,29 @@
     <description>Recent content on pipiyu&#39;s Blog</description>
     <generator>Hugo -- 0.126.1</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 27 May 2024 15:19:53 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 04 Oct 2024 17:29:42 +0800</lastBuildDate>
     <atom:link href="https://pipiyu1037.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Real-time NRC for Path Tracing</title>
+      <link>https://pipiyu1037.github.io/posts/tech/nrcforpt/</link>
+      <pubDate>Fri, 04 Oct 2024 17:29:42 +0800</pubDate>
+      <guid>https://pipiyu1037.github.io/posts/tech/nrcforpt/</guid>
+      <description>Real-time NRC for Path Tracing 一、导言 离线渲染的时候，一条 Ray 可以 bounce 多次，如 64；而实时光追中，往往只能 bounce 一次。或者说，离线渲染里的 path 是很长的，实时光追里的 path 是很</description>
+    </item>
+    <item>
+      <title>路径追踪中的多重重要性采样</title>
+      <link>https://pipiyu1037.github.io/posts/tech/misinpt/</link>
+      <pubDate>Fri, 04 Oct 2024 17:24:01 +0800</pubDate>
+      <guid>https://pipiyu1037.github.io/posts/tech/misinpt/</guid>
+      <description>路径追踪中的多重重要性采样 前言 在GAMES101课程中，介绍了使用蒙特卡洛方法来求解路径追踪问题，为了简化求解过程，当光线打到物体表面发生反</description>
+    </item>
+    <item>
+      <title>ReSTIR</title>
+      <link>https://pipiyu1037.github.io/posts/tech/restir/</link>
+      <pubDate>Fri, 04 Oct 2024 17:17:11 +0800</pubDate>
+      <guid>https://pipiyu1037.github.io/posts/tech/restir/</guid>
+      <description>ReSTIR RIS(Resampled Importance Sampling) 工作流程 从一个易于采样的分布 $ p\ (e.g.\ p\propto L_e) $中生成M个candidate samples $\mathbf{x} = {x_1,&amp;hellip;,x_M }$ 用离散概率分布$p(z|\mathbf{x})$从ca</description>
+    </item>
     <item>
       <title>🤝友链</title>
       <link>https://pipiyu1037.github.io/links/</link>
