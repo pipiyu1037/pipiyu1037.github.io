@@ -1,0 +1,47 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { siteConfig } from "../../config";
+import { formatDate, getPublishedPosts } from "../../lib/posts";
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+interface Props {
+  post: CollectionEntry<"blog">;
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+---
+
+<BaseLayout title={`${post.data.title} · ${siteConfig.name}`} description={post.data.description}>
+  <article class="article shell">
+    <header class="article-header reveal">
+      <a class="back-link" href="/blog/">← 返回文章</a>
+      <div class="article-meta">
+        <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+        <span>{Math.max(1, Math.ceil((post.body?.length ?? 0) / 500))} 分钟阅读</span>
+      </div>
+      <h1>{post.data.title}</h1>
+      <p>{post.data.description}</p>
+      <div class="tags">{post.data.tags.map((tag) => <span>#{tag}</span>)}</div>
+    </header>
+
+    <div class:list={["article-layout", { "without-toc": headings.length < 2 }]}>
+      <div class="prose"><Content /></div>
+      {headings.length >= 2 && (
+        <aside class="toc" aria-label="文章目录">
+          <span>目录</span>
+          <nav>
+            {headings.filter((heading) => heading.depth <= 3).map((heading) => (
+              <a class={`depth-${heading.depth}`} href={`#${heading.slug}`}>{heading.text}</a>
+            ))}
+          </nav>
+        </aside>
+      )}
+    </div>
+  </article>
+</BaseLayout>

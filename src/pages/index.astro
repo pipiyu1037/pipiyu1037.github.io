@@ -1,0 +1,61 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PostCard from "../components/PostCard.astro";
+import { siteConfig } from "../config";
+import { getPublishedPosts } from "../lib/posts";
+
+const posts = await getPublishedPosts();
+const latestPosts = posts.slice(0, 3);
+---
+
+<BaseLayout>
+  <section class="hero shell">
+    <div class="hero-copy reveal">
+      <p class="eyebrow"><span>SYS.01</span> / PERSONAL SPACE</p>
+      <h1>把思考写下来，<br /><em>让好奇心持续运行。</em></h1>
+      <p class="hero-intro">{siteConfig.intro}</p>
+      <div class="hero-actions">
+        <a class="button primary" href="/blog/">浏览文章 <span aria-hidden="true">→</span></a>
+        <a class="button secondary" href="/about/">了解我</a>
+      </div>
+    </div>
+
+    <div class="signal-panel reveal delay-1" aria-label="个人概览">
+      <div class="signal-head">
+        <span>PROFILE_SIGNAL</span>
+        <span class="live"><i></i> ONLINE</span>
+      </div>
+      <div class:list={["avatar-placeholder", { "has-image": siteConfig.avatar }]} aria-hidden="true">
+        {siteConfig.avatar ? <img src={siteConfig.avatar} alt="" /> : <span>{siteConfig.name.slice(0, 1).toUpperCase()}</span>}
+        <div class="orbit"></div>
+      </div>
+      <div class="signal-info">
+        <strong>{siteConfig.name}</strong>
+        <span>{siteConfig.role}</span>
+      </div>
+      <dl class="signal-stats">
+        <div><dt>文章</dt><dd>{String(posts.length).padStart(2, "0")}</dd></div>
+        <div><dt>坐标</dt><dd>{siteConfig.location}</dd></div>
+        <div><dt>状态</dt><dd>BUILDING</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="latest shell">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow"><span>LOG.02</span> / LATEST NOTES</p>
+        <h2>最近写下的内容</h2>
+      </div>
+      <a href="/blog/">查看全部 <span aria-hidden="true">→</span></a>
+    </div>
+
+    {latestPosts.length > 0 ? (
+      <div class="post-grid">
+        {latestPosts.map((post, index) => <PostCard post={post} featured={index === 0} />)}
+      </div>
+    ) : (
+      <div class="empty-state">第一篇文章正在路上。</div>
+    )}
+  </section>
+</BaseLayout>

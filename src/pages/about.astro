@@ -1,0 +1,44 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { siteConfig } from "../config";
+
+const socialLinks = [
+  { label: "GitHub", href: siteConfig.socials.github },
+  { label: "X", href: siteConfig.socials.x },
+  { label: "LinkedIn", href: siteConfig.socials.linkedin },
+].filter((item) => item.href);
+---
+
+<BaseLayout title={`关于 · ${siteConfig.name}`} description={`关于 ${siteConfig.name}。`}>
+  <section class="about shell">
+    <div class="about-heading reveal">
+      <p class="eyebrow"><span>IDENTITY</span> / ABOUT</p>
+      <h1>关于我</h1>
+    </div>
+
+    <div class="about-grid">
+      <aside class="profile-card reveal delay-1">
+        <div class:list={["profile-avatar", { "has-image": siteConfig.avatar }]} aria-hidden="true">
+          {siteConfig.avatar ? <img src={siteConfig.avatar} alt="" /> : siteConfig.name.slice(0, 1).toUpperCase()}
+        </div>
+        <h2>{siteConfig.name}</h2>
+        <p>{siteConfig.role}</p>
+        <dl>
+          <div><dt>位置</dt><dd>{siteConfig.location}</dd></div>
+          <div><dt>主页</dt><dd>pipiyu1037.github.io</dd></div>
+        </dl>
+      </aside>
+
+      <div class="about-content reveal delay-2">
+        {siteConfig.about.map((paragraph) => <p>{paragraph}</p>)}
+        <div class="contact-block">
+          <h2>找到我</h2>
+          <div class="contact-links">
+            {socialLinks.map((item) => <a href={item.href} target="_blank" rel="noreferrer">{item.label} <span>↗</span></a>)}
+            {siteConfig.email && <a href={`mailto:${siteConfig.email}`}>Email <span>↗</span></a>}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
