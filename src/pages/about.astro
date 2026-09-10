@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { siteConfig } from "../config";
+import { resume, siteConfig } from "../config";
 
 const socialLinks = [
   { label: "GitHub", href: siteConfig.socials.github },
@@ -38,6 +38,56 @@ const socialLinks = [
             {siteConfig.email && <a href={`mailto:${siteConfig.email}`}>Email <span>↗</span></a>}
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="resume-block">
+      <div class="resume-block-heading">
+        <div>
+          <p class="eyebrow"><span>JOURNEY</span> / EXPERIENCE</p>
+          <h2>教育背景与经历</h2>
+        </div>
+        <span>{resume.name}</span>
+      </div>
+
+      <div class="resume-grid">
+        <section class="resume-section" aria-labelledby="education-heading">
+          <div class="resume-section-heading">
+            <p>01</p>
+            <h3 id="education-heading">教育背景</h3>
+          </div>
+          <ol class="resume-list">
+            {resume.education.map((item) => (
+              <li class="resume-item">
+                <p class="resume-period">{item.period}</p>
+                <div class="resume-entry-line">
+                  <h4>{item.institution}</h4>
+                  <p>{item.degree}</p>
+                  <span>{item.location}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section class="resume-section" aria-labelledby="experience-heading">
+          <div class="resume-section-heading">
+            <p>02</p>
+            <h3 id="experience-heading">实习与工作经历</h3>
+          </div>
+          <ol class="resume-list">
+            {resume.experience.map((item) => (
+              <li class="resume-item">
+                <p class="resume-period">{item.period}</p>
+                <div class="resume-entry-line">
+                  <h4>{item.organization}</h4>
+                  <p>{item.role}</p>
+                  {item.location && <span>{item.location}</span>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
       </div>
     </div>
   </section>
